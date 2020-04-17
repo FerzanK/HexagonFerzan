@@ -7,7 +7,6 @@
 *  **Hexagonal Grids** https://www.redblobgames.com/grids/hexagons/
 * **Overthrowing the MonoBehaviour Tyranny in a Glorious Scriptable Object Revolution** https://www.youtube.com/watch?v=6vmRwLYWNRo
 * **Game Architecture with Scriptable Objects** https://www.youtube.com/watch?v=raQ3iHhE_Kk
-* Fully dynamic, baking not required
 
 ## License
 
