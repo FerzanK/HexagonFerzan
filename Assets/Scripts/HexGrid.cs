@@ -5,7 +5,6 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-
 public enum GridState { Stabilizing, Stable, Changing}
 
 [System.Serializable]
@@ -14,7 +13,6 @@ public class HexGrid : MonoBehaviour
     public Dictionary<Vector2Int, TilePosition> tilePositions = new Dictionary<Vector2Int, TilePosition>();
     public List<SelectionPoint> selectionPoints = new List<SelectionPoint>();
     public Dictionary<TileState, HashSet<Tile>> tileStates = new Dictionary<TileState, HashSet<Tile>>();
-    public SelectionPoint currentSelectionPoint;
     public GridSettings gridSettings = new GridSettings();
     public GridState state = GridState.Stable;
     public bool isChanging => (tileStates[TileState.Resting].Count != tileCount);
@@ -22,19 +20,17 @@ public class HexGrid : MonoBehaviour
     public GameEvent OnNoMoveMovesLeft;
     public GameEvent OnTileMatchEnd;
     public GameEvent OnScoreUpdate;
-    public IntVariable moveCount;
     public GameEvent OnBombExplosion;
+    public IntVariable moveCount;
     public IntVariable score;
     private GameObject[,] tiles;
     private int bombSpawnScore = 0;
     private bool explosionOccured = false;
     private int tileCount;
-    private Bounds boundingBox = new Bounds();
-    private List<MatchPattern> matchPatterns;
+    private List<MatchPattern> possibleMovePatterns;
     private void Start()
     {
         Create();
-        CreateBoundingBox();
         tileCount = gridSettings.verticalCount * gridSettings.horizontalCount;
         state = GridState.Stable;
     }
@@ -61,7 +57,7 @@ public class HexGrid : MonoBehaviour
         if (state == GridState.Stable && isChanging)
         {
             state = GridState.Changing;
-            currentSelectionPoint.Deselect();
+            SelectionPoint.current.Deselect();
             return;
         }
 
@@ -75,7 +71,7 @@ public class HexGrid : MonoBehaviour
         if (state == GridState.Stabilizing)
         {
             state = GridState.Stable;
-            currentSelectionPoint?.Select();
+            SelectionPoint.current.Select();
             if(!PossibleMovesExists())
             {
                 OnNoMoveMovesLeft.Raise();
@@ -91,37 +87,37 @@ public class HexGrid : MonoBehaviour
         }
     }
 
-    private void CreatePatterns()
+    private void CreatePossibleMovePatterns()
     {
-        matchPatterns = new List<MatchPattern>();
-        matchPatterns.Add(new MatchPattern(new Vector2Int(0, 2), new Vector2Int(1, 0), PatternConstraint.evenX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(0, 2), new Vector2Int(1, 1), PatternConstraint.evenX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(1, 0), new Vector2Int(2, 0), PatternConstraint.evenX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(2, 1), PatternConstraint.evenX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(2, 0), PatternConstraint.evenX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(1, 1), new Vector2Int(1, 0), PatternConstraint.evenX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(1, 1), PatternConstraint.evenX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(1, -1), PatternConstraint.evenX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(2, 1), new Vector2Int(1, -1), PatternConstraint.evenX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(1, 1), new Vector2Int(1, -1), PatternConstraint.evenX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(2, 0), new Vector2Int(1, 1), PatternConstraint.oddX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(1, 2), new Vector2Int(1, 1), PatternConstraint.oddX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(1, 2), new Vector2Int(1, 0), PatternConstraint.oddX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(1, 0), PatternConstraint.oddX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(2, 0), PatternConstraint.oddX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(2, 1), PatternConstraint.oddX, this));
-        matchPatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(1, 2), PatternConstraint.oddX, this));
+        possibleMovePatterns = new List<MatchPattern>();
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(0, 2), new Vector2Int(1, 0), PatternConstraint.evenX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(0, 2), new Vector2Int(1, 1), PatternConstraint.evenX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(1, 0), new Vector2Int(2, 0), PatternConstraint.evenX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(2, 1), PatternConstraint.evenX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(2, 0), PatternConstraint.evenX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(1, 1), new Vector2Int(1, 0), PatternConstraint.evenX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(1, 1), PatternConstraint.evenX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(1, -1), PatternConstraint.evenX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(2, 1), new Vector2Int(1, -1), PatternConstraint.evenX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(1, 1), new Vector2Int(1, -1), PatternConstraint.evenX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(2, 0), new Vector2Int(1, 1), PatternConstraint.oddX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(1, 2), new Vector2Int(1, 1), PatternConstraint.oddX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(1, 2), new Vector2Int(1, 0), PatternConstraint.oddX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(1, 0), PatternConstraint.oddX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(2, 0), PatternConstraint.oddX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(2, 1), PatternConstraint.oddX, this));
+        possibleMovePatterns.Add(new MatchPattern(new Vector2Int(0, 1), new Vector2Int(1, 2), PatternConstraint.oddX, this));
     }
 
     private bool PossibleMovesExists()
     {
-        if(matchPatterns == null) CreatePatterns();
+        if(possibleMovePatterns == null) CreatePossibleMovePatterns();
         for (int x = 0; x < gridSettings.horizontalCount; x++)
         {
             for (int y = 0; y < gridSettings.verticalCount; y++)
             {
                 var index = new Vector2Int(x, y);
-                foreach (var pattern in matchPatterns)
+                foreach (var pattern in possibleMovePatterns)
                 {
                     if(pattern.Match(index)) return true;
                 }
@@ -148,6 +144,8 @@ public class HexGrid : MonoBehaviour
                 destroyCount = 0;
                 yield return new WaitForSeconds(waitDuration);
             }
+
+            destroyCount++;
         }
         yield return new WaitForSeconds(0.5f);
         OnBombExplosion.Raise();
@@ -164,22 +162,10 @@ public class HexGrid : MonoBehaviour
         if (tileStates.ContainsKey(tile.state)) tileStates[tile.state].Remove(tile);
     }
 
-    private void CreateBoundingBox()
-    {
-        foreach (var tile in tiles)
-        {
-            boundingBox.Encapsulate(tile.GetComponent<BoxCollider2D>().bounds);
-        }
-    }
-
-    public Bounds GetBounds()
-    {
-        return boundingBox;
-    }
-
     public void RotateSelectionPointCC()
     {
-        if (!isChanging && currentSelectionPoint != null && !currentSelectionPoint.isRotating)
+        var currentSelectionPoint = SelectionPoint.current;
+        if (!isChanging && currentSelectionPoint.isSelected && !currentSelectionPoint.isRotating)
         { 
             Rotation rotation = Rotation.CC;
             currentSelectionPoint.RotateTiles(rotation);
@@ -188,7 +174,8 @@ public class HexGrid : MonoBehaviour
 
     public void RotateSelectionPointCW()
     {
-        if (!isChanging && currentSelectionPoint != null && !currentSelectionPoint.isRotating)
+        var currentSelectionPoint = SelectionPoint.current;
+        if (!isChanging && currentSelectionPoint.isSelected && !currentSelectionPoint.isRotating)
         {
             Rotation rotation = Rotation.CW;
             currentSelectionPoint.RotateTiles(rotation);
@@ -197,6 +184,7 @@ public class HexGrid : MonoBehaviour
 
     public void SelectSelectionPoint(Vector3 pos)
     {
+        var currentSelectionPoint = SelectionPoint.current;
         if (isChanging || (currentSelectionPoint != null && currentSelectionPoint.isRotating)) return;
         float distance = float.MaxValue;
         foreach (var sp in selectionPoints)
@@ -209,26 +197,12 @@ public class HexGrid : MonoBehaviour
             }
         }
 
-        if (currentSelectionPoint != null)
-        {
-            currentSelectionPoint.Select();
-        }
-
+        currentSelectionPoint?.Select();
     }
 
-    public void generateTiles(int rowCount, int columnCount)
-    {
-        tiles = new GameObject[rowCount, columnCount];
-    }
-
-    public void addHex(int row, int col, GameObject hexTile)
-    {
-        tiles[row, col] = hexTile;
-    }
-    
     public void Create()
     {
-        generateTiles(gridSettings.horizontalCount, gridSettings.verticalCount);
+        tiles = new GameObject[gridSettings.horizontalCount, gridSettings.verticalCount];
         SpriteRenderer tileSpriteRenderer = HexTile.GetComponent<SpriteRenderer>();
         float spriteWidth = tileSpriteRenderer.bounds.size.x + gridSettings.offsetAmount;
         float spriteHeight = tileSpriteRenderer.bounds.size.y + gridSettings.offsetAmount;
@@ -245,17 +219,14 @@ public class HexGrid : MonoBehaviour
                 go.name = "Tile" + tileCount++;
                 go.transform.parent = transform;
                 Tile tile = go.GetComponent<Tile>();
-                tile.x = row;
-                tile.y = col;
+                tile.index.x = row;
+                tile.index.y = col;
                 tile.SetTileColor(getRandomColor());
                 tile.SaveState();
                 var index = new Vector2Int(row, col);
-                var tilePosition = new TilePosition();
-                tilePosition.SetTile(tile);
-                tilePosition.SetIndex(index);
-                tilePosition.SetPosition(go.GetComponent<BoxCollider2D>().bounds.center);
+                var tilePosition = new TilePosition(tile, index);
                 tilePositions.Add(index, tilePosition);
-                addHex(row, col, go);
+                tiles[row, col] = go;
             }
         }
 
@@ -284,12 +255,15 @@ public class HexGrid : MonoBehaviour
                     var index2 = indexBase + lowerNeighbourVertices[i + 1];
                     try
                     {
-                        var c1 = tiles[row, col].GetComponent<BoxCollider2D>().bounds.center;
-                        var c2 = tiles[index1.x, index1.y].GetComponent<BoxCollider2D>().bounds.center;
-                        var c3 = tiles[index2.x, index2.y].GetComponent<BoxCollider2D>().bounds.center;
+                        var c1 = tiles[row, col].GetComponent<Tile>().GetCentoid();
+                        var c2 = tiles[index1.x, index1.y].GetComponent<Tile>().GetCentoid();
+                        var c3 = tiles[index2.x, index2.y].GetComponent<Tile>().GetCentoid();
                         var t = (c1 + c2 + c3) / 3.0f;
                         var selectionPoint = new SelectionPoint();
                         selectionPoint.SetPosition(t);
+                        selectionPoint.tileIndices[0] = indexBase;
+                        selectionPoint.tileIndices[1] = index1;
+                        selectionPoint.tileIndices[2] = index2;
                         selectionPoints.Add(selectionPoint);
                     }
                     catch (Exception e){ continue;}
@@ -330,15 +304,15 @@ public class HexGrid : MonoBehaviour
 
         if (explodeList.Count > 0)
         {
-            currentSelectionPoint?.Deselect();
+            SelectionPoint.current?.Deselect();
             Dictionary<int, HashSet<Tile>> explodedTiles = new Dictionary<int, HashSet<Tile>>();
             foreach (var selectionPoint in explodeList)
             {
                 selectionPoint.ExplodeSelection();
                 foreach (var tile in selectionPoint.GetTiles())
                 {
-                    if (!explodedTiles.ContainsKey(tile.x)) explodedTiles.Add(tile.x, new HashSet<Tile>() { tile });
-                    else explodedTiles[tile.x].Add(tile);
+                    if (!explodedTiles.ContainsKey(tile.index.x)) explodedTiles.Add(tile.index.x, new HashSet<Tile>() { tile });
+                    else explodedTiles[tile.index.x].Add(tile);
                 }
             }
 
@@ -459,22 +433,6 @@ public class HexGrid : MonoBehaviour
         }
     }
     
-    public Vector2Int GetIndex(Tile tile)
-    {
-        float minDistance = float.MaxValue;
-        Vector2Int index = new Vector2Int();
-        foreach (var tilePosition in tilePositions)
-        {
-            float distance = Vector2.Distance(tile.transform.position, tilePosition.Value.GetPosition());
-            if (minDistance > distance)
-            {
-                minDistance = distance;
-                index = tilePosition.Key;
-            }
-        }
-        return index;
-    }
-
     public Color getRandomColor()
     {
         int randomIndex = Random.Range(0, gridSettings.colors.Count);

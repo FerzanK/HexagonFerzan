@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Experimental.PlayerLoop;
-using UnityEngine.UI;
+
 
 public enum TileState
 {
@@ -28,8 +25,7 @@ public class Tile : MonoBehaviour
 {
     public TileState state = TileState.Resting;
     public TileType tileType = TileType.Regular;
-    public int x;
-    public int y;
+    public Vector2Int index;
     public GameEvent OnBombExplode;
     public int pointMultiplier => tileType == TileType.Star ? 2 : 1;
     public int points = 5;
@@ -118,12 +114,6 @@ public class Tile : MonoBehaviour
         grid.UpdateTileState(this);
     }
 
-    public void UpdateIndex(int newX, int newY)
-    {
-        x = newX;
-        y = newY;
-    }
-
     public void SetTileColor(Color color)
     {
         tileColor = color;
@@ -134,7 +124,6 @@ public class Tile : MonoBehaviour
     public void Reset()
     {
         UpdateState(TileState.Resting);
-        GetComponent<BoxCollider2D>().enabled = true;
         tileType = TileType.Regular;
         SetTileColor(grid.getRandomColor());
     }
@@ -144,7 +133,6 @@ public class Tile : MonoBehaviour
         tileType = TileType.Regular;
         DisableSprites();
         UpdateState(TileState.Destroyed);
-        GetComponent<BoxCollider2D>().enabled = false;
         SpawnParticles();
     }
 
@@ -169,7 +157,7 @@ public class Tile : MonoBehaviour
 
     public Vector2Int GetIndex()
     {
-        return new Vector2Int(x, y);
+        return index;
     }
 
     private void DisableSprites()
@@ -183,7 +171,7 @@ public class Tile : MonoBehaviour
     public void SpawnTile()
     {
         UpdateState(TileState.FallingDown);
-        float height = Camera.main.orthographicSize * 2 + transform.position.y + GetHeight() * 10;
+        float height = Camera.main.orthographicSize * 2 + transform.position.y;
         transform.position = new Vector3(transform.position.x, height, 0.0f);
         SetTileColor(grid.getRandomColor());
         Initialize();
@@ -194,16 +182,19 @@ public class Tile : MonoBehaviour
     private void SpawnComplete()
     {
         RefreshIndex();
-        GetComponent<BoxCollider2D>().enabled = true;
         UpdateState(TileState.Resting);
     }
     
     public void RefreshIndex()
     {
-        var newIndex = grid.GetIndex(this);
-        x = newIndex.x;
-        y = newIndex.y;
-        grid.SetTile(GetIndex(), this);
+        var spatialSearchResult = TilePosition.GetClosestTilePosition(transform.position);
+        if (spatialSearchResult == null)
+        {
+            Debug.LogWarning("RefreshIndex returned Null!!");
+            return;
+        }
+        index = spatialSearchResult.GetIndex();
+        grid.SetTile(index, this);
     }
 
     void SpawnParticles()
@@ -217,12 +208,12 @@ public class Tile : MonoBehaviour
 
     public Vector3 GetCentoid()
     {
-        return GetComponent<BoxCollider2D>().bounds.center;
+        return GetBounds().center;
     }
 
-    private float GetHeight()
+    public Bounds GetBounds()
     {
-        return GetComponent<BoxCollider2D>().bounds.size.y;
+        return hexSpriteRenderer.bounds;
     }
 
     public void ChangeSortingOrder(bool increase)
@@ -233,7 +224,7 @@ public class Tile : MonoBehaviour
 
     Vector2 GetPoint(int pointIndex)
     {
-        var colliderBounds = GetComponent<BoxCollider2D>().bounds;
+        var colliderBounds = hexSpriteRenderer.bounds;
         Vector3 center = colliderBounds.center;
         float halfSize = colliderBounds.size.x / 2 + grid.gridSettings.offsetAmount / 2.0f;
         var angleDegrees = 60 * pointIndex;
@@ -274,8 +265,8 @@ public class Tile : MonoBehaviour
     {
         SetColorWithID(tileData.colorID);
         tileType = tileData.tileType;
-        x = tileData.x;
-        y = tileData.y;
+        index.x = tileData.x;
+        index.y = tileData.y;
         bombLife = tileData.bombLife;
     }
 
@@ -289,11 +280,10 @@ public class Tile : MonoBehaviour
     {
         if (previousState == null) return;
         UpdateState(TileState.Resting);
-        GetComponent<BoxCollider2D>().enabled = true;
         SetColorWithID(previousState.colorID);
         tileType = previousState.tileType;
-        x = previousState.x;
-        y = previousState.y;
+        index.x = previousState.x;
+        index.y = previousState.y;
         transform.position = grid.tilePositions[GetIndex()].GetPosition();
         grid.SetTile(GetIndex(), this);
         bombLife = previousState.bombLife;
@@ -325,8 +315,8 @@ public class TileData
     {
         colorID = tile.GetColorID();
         tileType = tile.tileType;
-        x = tile.x;
-        y = tile.y;
+        x = tile.index.x;
+        y = tile.index.y;
         bombLife = tile.bombLife;
     }
 }

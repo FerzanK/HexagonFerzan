@@ -1,10 +1,29 @@
 ﻿using UnityEngine;
 
-public class TilePosition
+public class TilePosition : IGridItem
 {
-    private Vector2Int index;
     private Vector2 position;
     private Tile tile;
+    private Vector2Int index;
+    private static GridSearch<TilePosition> spatialSearch = new GridSearch<TilePosition>();
+
+    public TilePosition(Tile tile, Vector2Int index)
+    {
+        this.tile = tile;
+        this.index = index;
+        position = tile.GetCentoid();
+        spatialSearch.Add(this);
+    }
+
+    public static TilePosition GetClosestTilePosition(Vector2 pos)
+    {
+        return spatialSearch.Search(pos);
+    }
+
+    public Vector2Int GetIndex()
+    {
+        return index;
+    }
 
     public Tile GetTile()
     {
@@ -16,11 +35,6 @@ public class TilePosition
         this.tile = tile;
     }
 
-    public void SetIndex(Vector2Int index)
-    {
-        this.index = index;
-    }
-
     public void SetPosition(Vector2 position)
     {
         this.position = position;
@@ -29,16 +43,6 @@ public class TilePosition
     public Vector2 GetPosition()
     {
         return position;
-    }
-
-    public bool IsEmpty()
-    {
-        return tile = null;
-    }
-
-    public void ClearTile(Tile tile)
-    {
-        this.tile = null;
     }
 
 }

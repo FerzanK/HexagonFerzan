@@ -4,10 +4,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 
-public class SelectionPoint
+public class SelectionPoint : IGridItem
 {
+    private static GridSearch<SelectionPoint> spatialSearch = new GridSearch<SelectionPoint>();
+    public static SelectionPoint current;
     public bool isRotating;
+    public bool isSelected;
     public Vector2 position;
+    public Vector2Int[] tileIndices = new Vector2Int[3];
     private int rotationCount = 1;
     private Rotation rotationDirection;
     private readonly HexGrid grid;
@@ -18,18 +22,31 @@ public class SelectionPoint
     private List<Tile> tileCache;
     private Vector3[] outlinePointCache;
 
+
     public SelectionPoint()
     {
+        current = this;
         grid = GameObject.Find("Grid").GetComponent<HexGrid>();
         dotGameObject = GameObject.Find("SelectionPoint");
         dotSpriteRenderer = dotGameObject.GetComponent<SpriteRenderer>();
         outlineGameobject = dotGameObject.transform.GetChild(0).gameObject;
         outlineSpriteRenderer = outlineGameobject.GetComponent<SpriteRenderer>();
+        spatialSearch.Add(this);
+    }
+
+    public static SelectionPoint GetClosestSelectionPoint(Vector2 pos)
+    {
+        return spatialSearch.Search(pos);
     }
 
     public void SetPosition(Vector2 pos)
     {
         position = pos;
+    }
+
+    public Vector2 GetPosition()
+    {
+        return position;
     }
 
     public void RotateTiles(Rotation rotation)
@@ -54,7 +71,6 @@ public class SelectionPoint
     void ParentTiles()
     {
         var tiles = GetTiles();
-        if (tiles == null) return;
         foreach (var tile in tiles)
         {
             tile.transform.parent = dotGameObject.transform;
@@ -64,7 +80,6 @@ public class SelectionPoint
     void TilesChangeSortingOrder(bool increase)
     {
         var tiles = GetTiles();
-        if (tiles == null) return;
         foreach (var tile in tiles)
         {
             tile.ChangeSortingOrder(increase);
@@ -74,7 +89,6 @@ public class SelectionPoint
     void UnParentTiles()
     {
         var tiles = GetTiles();
-        if (tiles == null) return;
         foreach (var tile in tiles)
         {
             tile.transform.parent = grid.transform;
@@ -121,7 +135,6 @@ public class SelectionPoint
     void UpdateTileIndexes()
     {
         var tiles = GetTiles();
-        if (tiles == null) return;
         foreach (var tile in tiles) tile.RefreshIndex();
     }
 
@@ -158,7 +171,6 @@ public class SelectionPoint
     public void ExplodeSelection()
     {
         var tiles = GetTiles();
-        if (tiles == null) return;
         foreach (var tile in tiles) tile.DestroyTile();
     }
 
@@ -181,7 +193,6 @@ public class SelectionPoint
     {
         var tiles = GetTiles();
         var otherTiles = selectionPoint.GetTiles();
-
         return IsColorMatching() && selectionPoint.IsColorMatching() && tiles[0].tileColor == otherTiles[0].tileColor;
     }
 
@@ -193,21 +204,19 @@ public class SelectionPoint
 
     public List<Tile> GetTiles()
     {
-        var colliders = Physics2D.OverlapCircleAll(position, 0.2f);
-        if (colliders.Length != 3) return tileCache;
         if (tileCache == null)
         {
             tileCache = new List<Tile>(3)
             {
-                colliders[0].gameObject.GetComponent<Tile>(),
-                colliders[1].gameObject.GetComponent<Tile>(),
-                colliders[2].gameObject.GetComponent<Tile>()
+                grid.tilePositions[tileIndices[0]].GetTile(),
+                grid.tilePositions[tileIndices[1]].GetTile(),
+                grid.tilePositions[tileIndices[2]].GetTile(),
             };
             return tileCache;
         }
-        tileCache[0] = colliders[0].gameObject.GetComponent<Tile>();
-        tileCache[1] = colliders[1].gameObject.GetComponent<Tile>();
-        tileCache[2] = colliders[2].gameObject.GetComponent<Tile>();
+        tileCache[0] = grid.tilePositions[tileIndices[0]].GetTile();
+        tileCache[1] = grid.tilePositions[tileIndices[1]].GetTile();
+        tileCache[2] = grid.tilePositions[tileIndices[2]].GetTile();
         return tileCache;
     }
 
@@ -296,6 +305,8 @@ public class SelectionPoint
 
     public void Select()
     {
+        current = this;
+        isSelected = true;
         dotSpriteRenderer.enabled = true;
         outlineSpriteRenderer.enabled = true;
         dotGameObject.transform.position = position;
@@ -304,6 +315,7 @@ public class SelectionPoint
 
     public void Deselect()
     {
+        isSelected = false;
         dotSpriteRenderer.enabled = false;
         outlineSpriteRenderer.enabled = false;
     }

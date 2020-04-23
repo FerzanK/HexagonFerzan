@@ -11,26 +11,22 @@ public class TapEvent : UnityEvent<Vector3>
 
 public class ScreenManager : MonoBehaviour
 {
+    public bool useMouseControls;
+    public bool useTouchControls;
+    public float validTouchDuration = 1.2f;
+    public float maximumValidTapDistance = 1.5f;
+    public float tapRegisterDuration = 0.35f;
     public UnityEvent OnRotationCW = new UnityEvent();
     public UnityEvent OnRotationCC = new UnityEvent();
     public TapEvent OnTap = new TapEvent();
     private float touchStartTime = 0.0f;
-    private HexGrid grid;
     private Vector2 touchStart;
     private Vector2 touchEnd;
-    public float validTouchDuration = 1.2f;
-    public float maximumValidTapDistance = 1.5f;
-    public float tapRegisterDuration = 0.35f;
-
-    void Awake()
-    {
-        grid = GameObject.Find("Grid").GetComponent<HexGrid>();
-    }
 
     void Update()
     {
-        ProcessTouch();
-        //ProcessMouseControls();
+        if(useTouchControls) ProcessTouch();
+        if(useMouseControls) ProcessMouseControls();
     }
 
     Vector3 ToWorldPosition(Vector2 pos)
@@ -42,13 +38,13 @@ public class ScreenManager : MonoBehaviour
 
     void CalculateSwipeDirection()
     {
-        if (grid.currentSelectionPoint == null) return;
+        if (!SelectionPoint.current.isSelected) return;
         var v1 = touchStart;
         var v2 = touchEnd;
 
         float xDist = Mathf.Abs(v2.x - v1.x);
         float yDist = Mathf.Abs(v2.y - v1.y);
-        var screenCoordinates = Camera.main.WorldToScreenPoint(grid.currentSelectionPoint.position);
+        var screenCoordinates = Camera.main.WorldToScreenPoint(SelectionPoint.current.position);
 
         if (xDist > yDist)
         {
