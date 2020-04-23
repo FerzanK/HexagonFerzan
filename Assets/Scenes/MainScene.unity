@@ -748,6 +748,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c55db6e67e56374596007e794170d05, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  useMouseControls: 1
+  useTouchControls: 0
+  validTouchDuration: 1.5
+  maximumValidTapDistance: 0.1
+  tapRegisterDuration: 0.15
   OnRotationCW:
     m_PersistentCalls:
       m_Calls:
@@ -790,9 +795,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  validTouchDuration: 1.5
-  maximumValidTapDistance: 0.1
-  tapRegisterDuration: 0.15
 --- !u!1 &636555886
 GameObject:
   m_ObjectHideFlags: 0
@@ -842,8 +844,8 @@ MonoBehaviour:
   OnNoMoveMovesLeft: {fileID: 11400000, guid: 9663639d3fd3b98429a9c7d0e95f7fae, type: 2}
   OnTileMatchEnd: {fileID: 11400000, guid: db236663f509ab344a420b53538fdf09, type: 2}
   OnScoreUpdate: {fileID: 11400000, guid: c666148b68c8122489da1eee63441edf, type: 2}
-  moveCount: {fileID: 11400000, guid: d8dd55039ae75b841825ef850570ef7d, type: 2}
   OnBombExplosion: {fileID: 11400000, guid: 0029feafba3d1ab46835523237c17d76, type: 2}
+  moveCount: {fileID: 11400000, guid: d8dd55039ae75b841825ef850570ef7d, type: 2}
   score: {fileID: 11400000, guid: 5bf5058671e9ef24bbfb6b6769132c03, type: 2}
 --- !u!4 &636555888
 Transform:
