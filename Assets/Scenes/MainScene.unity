@@ -748,8 +748,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c55db6e67e56374596007e794170d05, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  useMouseControls: 1
-  useTouchControls: 0
+  useMouseControls: 0
+  useTouchControls: 1
   validTouchDuration: 1.5
   maximumValidTapDistance: 0.1
   tapRegisterDuration: 0.15
@@ -806,6 +806,7 @@ GameObject:
   - component: {fileID: 636555888}
   - component: {fileID: 636555887}
   - component: {fileID: 636555889}
+  - component: {fileID: 636555890}
   m_Layer: 0
   m_Name: Grid
   m_TagString: Untagged
@@ -839,6 +840,8 @@ MonoBehaviour:
     starSpawnPercent: 5
     bombLife: 8
     tileSpeed: 3
+    hexPoint: 5
+    starMultiplier: 2
   state: 0
   HexTile: {fileID: 4475587193488405845, guid: 74bbe2dd3733e1b47b0185ac280af544, type: 3}
   OnNoMoveMovesLeft: {fileID: 11400000, guid: 9663639d3fd3b98429a9c7d0e95f7fae, type: 2}
@@ -879,6 +882,33 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 636555887}
         m_MethodName: Reset
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &636555890
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 636555886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4dab3d0f9ef59f42b2e5f9862e7bb4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Event: {fileID: 11400000, guid: 185e0cc183876e0429040f4627e9b832, type: 2}
+  Response:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 636555887}
+        m_MethodName: StartGridDestruction
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
