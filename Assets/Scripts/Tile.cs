@@ -26,13 +26,13 @@ public class Tile : MonoBehaviour
     public TileState state = TileState.Resting;
     public TileType tileType = TileType.Regular;
     public Vector2Int index;
-    public GameEvent OnBombExplode;
-    public int pointMultiplier => tileType == TileType.Star ? 2 : 1;
-    public int points = 5;
+    public int pointMultiplier => tileType == TileType.Star ? grid.gridSettings.starMultiplier : 1;
+    public int points => grid.gridSettings.hexPoint;
     public Color tileColor;
     public int bombLife;
     public Vector2Int targetIndex;
     public GameObject bombCounter;
+    public GameEvent OnBombTimerEnd;
     private TileData previousState;
     private HexGrid grid;
     private SpriteRenderer hexSpriteRenderer;
@@ -92,7 +92,7 @@ public class Tile : MonoBehaviour
         { 
             bombLife--;
             UpdateBombCounterText();
-            if (bombLife == 0) grid.StartGridDestruction();
+            if (bombLife == 0) OnBombTimerEnd.Raise();
         }
     }
 
