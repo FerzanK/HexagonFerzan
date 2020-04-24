@@ -14,6 +14,8 @@ public class GridSettings
     public int starSpawnPercent;
     public int bombLife;
     public float tileSpeed;
+    public int hexPoint = 5;
+    public int starMultiplier = 2;
     private Dictionary<Color, int> colorDict;
     private Dictionary<int, Color> colorIDDict;
     public int GetColorID(Color color)
