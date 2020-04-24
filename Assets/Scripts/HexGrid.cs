@@ -134,20 +134,17 @@ public class HexGrid : MonoBehaviour
 
     public IEnumerator Destroy()
     {
-        float waitDuration = 0.5f;
-        int destroyCount = 0;
-        foreach (var tile in tiles)
+        float waitDuration = 0.1f;
+        for (int t = gridSettings.verticalCount -1; t >= 0; t--)
         {
-            tile.GetComponent<Tile>().DestroyTile();
-            if(destroyCount == 15)
+            for (int i = 0; i < gridSettings.horizontalCount; i++)
             {
-                destroyCount = 0;
-                yield return new WaitForSeconds(waitDuration);
+                tiles[i, t].GetComponent<Tile>().DestroyTile();
             }
-
-            destroyCount++;
+            yield return new WaitForSeconds(waitDuration);
         }
-        yield return new WaitForSeconds(0.5f);
+
+        yield return new WaitForSeconds(0.2f);
         OnBombExplosion.Raise();
     }
 
