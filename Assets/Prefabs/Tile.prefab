@@ -462,14 +462,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   state: 0
   tileType: 0
-  x: 0
-  y: 0
-  OnBombExplode: {fileID: 0}
+  index: {x: 0, y: 0}
   points: 5
   tileColor: {r: 0, g: 0, b: 0, a: 0}
   bombLife: 6
   targetIndex: {x: 0, y: 0}
   bombCounter: {fileID: 985472005246527406}
+  OnBombTimerEnd: {fileID: 11400000, guid: 185e0cc183876e0429040f4627e9b832, type: 2}
 --- !u!114 &-4706436552997771233
 MonoBehaviour:
   m_ObjectHideFlags: 0
